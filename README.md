@@ -13,6 +13,16 @@
 
 **Stock-Prediction-Models**, Gathers machine learning and deep learning models for Stock forecasting, included trading bots and simulations.
 
+## Current status
+
+- The actively maintained runtime in this repository is [`realtime-agent/app.py`](realtime-agent/app.py). It now runs on modern Python with a checked-in model and dataset.
+- Install the current runtime dependencies with `python -m pip install -r requirements.txt`.
+- Start the API with `python realtime-agent/app.py`.
+- A local client for smoke-testing the API is available at `python realtime-agent/client.py health`.
+- The API is served with Waitress 3.0.2 instead of Flask's development server.
+- Container startup is available with `docker compose up --build`.
+- Most notebooks are preserved as historical 2017-2023 experiments. The DNC and TensorFlow notebook code remains legacy research code and should be run in a separate Python 3.12 TensorFlow environment, not the Python 3.14 runtime used for the Flask agent.
+
 ## Table of contents
   * [Models](#models)
   * [Agents](#agents)

@@ -1,0 +1,81 @@
+{
+  "date": "2026-03-12T19:26:23.241314",
+  "total_scanned": 50,
+  "top_picks": [
+    {
+      "symbol": "AMAT",
+      "name": "Applied Materials, Inc.",
+      "price": 337.27,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 40.0,
+      "change_24h": -3.93,
+      "change_7d": -4.0,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 0.0,
+        "hold": 100.0
+      }
+    },
+    {
+      "symbol": "IFC.TO",
+      "name": "INTACT FINANCIAL CORPORATION",
+      "price": 256.02,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": 2.41,
+      "change_7d": -1.57,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    },
+    {
+      "symbol": "ICE",
+      "name": "Intercontinental Exchange Inc.",
+      "price": 158.61,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": 1.01,
+      "change_7d": -3.74,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    },
+    {
+      "symbol": "SPGI",
+      "name": "S&P Global Inc.",
+      "price": 419.7,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": -2.16,
+      "change_7d": -5.47,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    },
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "price": 255.76,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": -1.94,
+      "change_7d": -3.03,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    }
+  ]
+}

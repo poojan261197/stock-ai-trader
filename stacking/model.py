@@ -1,19 +1,49 @@
-import tensorflow as tf
 import numpy as np
+from sklearn.neural_network import MLPRegressor
+
 
 class Model:
-    def __init__(self, learning_rate, num_layers, size, size_layer, output_size, forget_bias = 0.1):
-        
-        def lstm_cell(size_layer):
-            return tf.nn.rnn_cell.LSTMCell(size_layer, state_is_tuple = False)
-        rnn_cells = tf.nn.rnn_cell.MultiRNNCell([lstm_cell(size_layer) for _ in range(num_layers)], state_is_tuple = False)
-        self.X = tf.placeholder(tf.float32, (None, None, size))
-        self.Y = tf.placeholder(tf.float32, (None, output_size))
-        drop = tf.contrib.rnn.DropoutWrapper(rnn_cells, output_keep_prob = forget_bias)
-        self.hidden_layer = tf.placeholder(tf.float32, (None, num_layers * 2 * size_layer))
-        self.outputs, self.last_state = tf.nn.dynamic_rnn(drop, self.X, initial_state = self.hidden_layer, dtype = tf.float32)
-        rnn_W = tf.Variable(tf.random_normal((size_layer, output_size)))
-        rnn_B = tf.Variable(tf.random_normal([output_size]))
-        self.logits = tf.matmul(self.outputs[-1], rnn_W) + rnn_B
-        self.cost = tf.reduce_mean(tf.square(self.Y - self.logits))
-        self.optimizer = tf.train.AdamOptimizer(learning_rate).minimize(self.cost)
+    """Modern replacement for the old TensorFlow 1.x graph-based stacking model."""
+
+    def __init__(self, learning_rate, num_layers, size, size_layer, output_size, forget_bias=0.1):
+        hidden_layers = tuple(int(size_layer) for _ in range(max(1, int(num_layers))))
+        self.sequence_width = int(size)
+        self.output_size = int(output_size)
+        self.forget_bias = float(forget_bias)
+        self.regressor = MLPRegressor(
+            hidden_layer_sizes=hidden_layers,
+            activation="relu",
+            solver="adam",
+            learning_rate_init=float(learning_rate),
+            max_iter=500,
+            random_state=42,
+        )
+
+    def _reshape_sequences(self, inputs):
+        array = np.asarray(inputs, dtype=np.float64)
+        if array.ndim == 2:
+            return array
+        if array.ndim != 3:
+            raise ValueError("inputs must be a 2D or 3D array")
+        batch, steps, width = array.shape
+        if width != self.sequence_width:
+            raise ValueError(f"expected feature width {self.sequence_width}, got {width}")
+        return array.reshape(batch, steps * width)
+
+    def fit(self, inputs, targets):
+        features = self._reshape_sequences(inputs)
+        labels = np.asarray(targets, dtype=np.float64)
+        self.regressor.fit(features, labels)
+        return self
+
+    def predict(self, inputs):
+        features = self._reshape_sequences(inputs)
+        prediction = self.regressor.predict(features)
+        if prediction.ndim == 1:
+            return prediction.reshape(-1, 1)
+        return prediction
+
+    def score(self, inputs, targets):
+        features = self._reshape_sequences(inputs)
+        labels = np.asarray(targets, dtype=np.float64)
+        return self.regressor.score(features, labels)

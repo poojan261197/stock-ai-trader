@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test_trading.py)",
+      "Bash(python -c \":*)",
+      "Bash(python market_scanner.py)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(python -c \"import re; content = open\\(''market_scanner.py'', ''rb''\\).read\\(\\).decode\\(''utf-8''\\); emojis = re.findall\\(r''[^\\\\x00-\\\\x7F]+'', content\\); print\\(''Non-ASCII characters found:''\\); for e in set\\(emojis\\): print\\(repr\\(e\\)\\)\")",
+      "Bash(python realtime-agent/market_scanner.py)",
+      "Bash(python ./realtime-agent/market_scanner.py)",
+      "Bash(npm install:*)",
+      "Bash(python -c \"import torch; import transformers; print\\(''PyTorch:'', torch.__version__\\); print\\(''Transformers available''\\)\")",
+      "Bash(dir)",
+      "Bash(start python:*)",
+      "Bash(start npm:*)"
+    ]
+  }
+}

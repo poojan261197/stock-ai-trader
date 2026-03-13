@@ -24,10 +24,11 @@ from __future__ import print_function
 
 import collections
 import numpy as np
-import sonnet as snt
-import tensorflow as tf
 
 import access
+from legacy_dependencies import load_tensorflow_and_sonnet
+
+snt, tf = load_tensorflow_and_sonnet()
 
 DNCState = collections.namedtuple('DNCState', ('access_output', 'access_state',
                                                'controller_state'))

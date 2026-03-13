@@ -19,25 +19,60 @@ I trained the model to learn trading on different stocks,
 
 You might want to add more to cover more stochastic patterns.
 
-2. Run [app.py](app.py) to serve the checkpoint model using Flask,
+2. Install the runtime dependencies from the repository root,
 
 ```bash
-python3 app.py
+python -m pip install -r ..\requirements.txt
+```
+
+3. Run [app.py](app.py) to serve the checkpoint model using Waitress,
+
+```bash
+python app.py
+```
+
+From PowerShell, you can also use the helper scripts:
+
+```powershell
+.\realtime-agent\start-server.ps1
+.\realtime-agent\stop-server.ps1
+```
+
+Containerized startup from the repository root:
+
+```powershell
+docker compose up --build
 ```
 
 ```text
-* Serving Flask app "app" (lazy loading)
-* Environment: production
-  WARNING: This is a development server. Do not use it in a production deployment.
-  Use a production WSGI server instead.
-* Debug mode: off
-* Running on http://0.0.0.0:8005/ (Press CTRL+C to quit)
+INFO app Starting waitress server host=0.0.0.0 port=8005 threads=8
 ```
 
-3. You can check requests example in [request.ipynb](request.ipynb) to get a kickstart.
+4. You can check requests example in [request.ipynb](request.ipynb) to get a kickstart.
 
 ```bash
 curl http://localhost:8005/trade?data=[13.1, 13407500]
+```
+
+You can also send JSON with `POST /trade`:
+
+```bash
+curl -X POST http://localhost:8005/trade ^
+  -H "Content-Type: application/json" ^
+  -d "{\"data\": [13.1, 13407500]}"
+```
+
+Inspect runtime metadata:
+
+```bash
+curl http://localhost:8005/metadata
+```
+
+Or use the included local client:
+
+```bash
+python client.py health
+python client.py trade --close 13.1 --volume 13407500
 ```
 
 ```python
@@ -54,3 +89,7 @@ curl http://localhost:8005/trade?data=[13.1, 13407500]
 ## Notes
 
 1. You can use this code to integrate with realtime socket, or any APIs you wanted, imagination is your limit now.
+2. `app.py` now resolves `model.pkl` and the CSV dataset relative to its own folder, so it works when launched from either the repo root or `realtime-agent/`.
+3. The default dataset is `TWTR.csv`, and you can override it with `REALTIME_AGENT_DATA_PATH`.
+4. Logs are written to `realtime-agent/logs/realtime-agent.log` and controlled by `REALTIME_AGENT_LOG_LEVEL`.
+5. The service now runs behind Waitress instead of Flask's development server.

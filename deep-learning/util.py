@@ -19,7 +19,10 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import tensorflow as tf
+
+from legacy_dependencies import load_tensorflow
+
+tf = load_tensorflow()
 
 
 def batch_invert_permutation(permutations):

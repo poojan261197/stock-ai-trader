@@ -1,0 +1,81 @@
+{
+  "date": "2026-03-12T19:24:08.317090",
+  "total_scanned": 50,
+  "top_picks": [
+    {
+      "symbol": "GS",
+      "name": "Goldman Sachs Group, Inc. (The)",
+      "price": 787.52,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 40.0,
+      "change_24h": -4.4,
+      "change_7d": -8.7,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 0.0,
+        "hold": 100.0
+      }
+    },
+    {
+      "symbol": "AMAT",
+      "name": "Applied Materials, Inc.",
+      "price": 337.27,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 40.0,
+      "change_24h": -3.93,
+      "change_7d": -4.0,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 0.0,
+        "hold": 100.0
+      }
+    },
+    {
+      "symbol": "ACN",
+      "name": "Accenture plc",
+      "price": 196.05,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": -2.7,
+      "change_7d": -6.59,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    },
+    {
+      "symbol": "QCOM",
+      "name": "QUALCOMM Incorporated",
+      "price": 131.15,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": -2.21,
+      "change_7d": -4.44,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "price": 242.04,
+      "action": "nothing",
+      "confidence": 100.0,
+      "score": 0.0,
+      "change_24h": -0.39,
+      "change_7d": -1.91,
+      "probabilities": {
+        "buy": 0.0,
+        "sell": 100.0,
+        "hold": 0.0
+      }
+    }
+  ]
+}
