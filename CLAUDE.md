@@ -255,5 +255,48 @@ git clean -fd
 
 ---
 
+## Incomplete Items (From 2026-03-13 Session)
+
+### Not Completed / Partial
+- [ ] Install PyTorch ML libraries (torch, transformers, lightning)
+- [ ] Train LSTM and Transformer models on historical data
+- [ ] Integrate Ensemble predictor into market_scanner.py (currently uses old model)
+- [ ] Configure Wealthsimple OAuth (needs client_id/secret from user)
+- [ ] Set up automated daily scanning via cron/systemd
+- [ ] Add Redis caching layer for stock prices
+- [ ] Implement real price alerts (not just skeleton code)
+- [ ] Add authentication/login system
+- [ ] Create mobile responsive adjustments
+- [ ] Add dark/light theme toggle
+- [ ] WebSocket price streaming (SocketIO skeleton exists but needs implementation)
+
+### Considerations
+- Prediction models are ARCHITECTURE only (not trained on real data)
+- Ensemble weights are hardcoded (40/40/20) not optimized
+- Stock data is from yfinance free API (20-min delay for some exchanges)
+- No production WSGI server (Flask dev server currently used)
+
+---
+
+## Session Log
+
+### 2026-03-13 - Initial Complete Build
+- [x] Created full-stack architecture (Flask + React)
+- [x] Built Dashboard with charts (Recharts)
+- [x] Built Portfolio page with holdings & P&L
+- [x] Built Scan page with stock recommendations
+- [x] Added LSTM + Attention model architecture
+- [x] Added Transformer model architecture
+- [x] Added Ensemble meta-learning architecture
+- [x] Created stock universe (230+ stocks/ETFs)
+- [x] Integrated Wealthsimple OAuth skeleton
+- [x] Fixed CSS styling (Inter font, glass-morphism)
+- [x] Added comprehensive tests
+- [x] Created Docker configuration
+- [x] Committed and pushed to GitHub (main branch)
+- [x] Created CLAUDE.md documentation
+
+---
+
 **Last Updated:** 2026-03-13
 **Version:** 1.0.0 - Initial Release
