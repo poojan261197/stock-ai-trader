@@ -1,0 +1,223 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #00d4ff;
+  --success: #00ff88;
+  --danger: #ff4d4d;
+  --warning: #ffb800;
+  --bg-dark: #0a0a1a;
+  --bg-card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #121830 50%, #1a1a2e 100%);
+  background-attachment: fixed;
+  color: #fff;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-xl border;
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border-color: var(--border);
+  }
+
+  .card {
+    @apply glass-panel p-6 shadow-xl;
+  }
+
+  .gradient-text {
+    @apply font-bold;
+    background: linear-gradient(135deg, var(--success), var(--primary), #7b2cb8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .heading-1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .heading-2 {
+    @apply text-xl font-semibold;
+  }
+
+  .heading-3 {
+    @apply text-lg font-medium;
+  }
+
+  .text-muted {
+    @apply text-gray-400;
+  }
+
+  .text-small {
+    @apply text-sm;
+  }
+
+  .btn {
+    @apply px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900;
+  }
+
+  .btn-primary {
+    @apply btn;
+    background: linear-gradient(135deg, var(--primary), #7b2cb8);
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,212,255,0.35);
+  }
+
+  .btn-success {
+    @apply btn;
+    background: rgba(0, 255, 136, 0.15);
+    border: 1px solid var(--success);
+    color: var(--success);
+  }
+
+  .btn-success:hover:not(:disabled) {
+    @apply bg-emerald-500/25;
+    transform: translateY(-1px);
+  }
+
+  .btn-danger {
+    @apply btn;
+    background: rgba(255, 77, 77, 0.15);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    @apply bg-red-500/25;
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .badge {
+    @apply px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply badge;
+    background: rgba(0, 255, 136, 0.15);
+    color: var(--success);
+  }
+
+  .badge-danger {
+    @apply badge;
+    background: rgba(255, 77, 77, 0.15);
+    color: var(--danger);
+  }
+
+  .badge-warning {
+    @apply badge;
+    background: rgba(255, 184, 0, 0.15);
+    color: var(--warning);
+  }
+
+  .input {
+    @apply bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2.5 text-white;
+    @apply focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500;
+    @apply transition-colors;
+  }
+
+  .stat-value {
+    @apply text-2xl font-bold text-white;
+  }
+
+  .stat-label {
+    @apply text-sm text-gray-400;
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s infinite;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Chart customizations */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(255,255,255,0.05);
+}
+
+.recharts-tooltip {
+  background: rgba(10, 10, 26, 0.95) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 8px !important;
+}

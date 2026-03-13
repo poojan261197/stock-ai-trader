@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prediction - Portfolio Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #121830 50%, #0a0a1a 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00ff88, #00d4ff, #7b2cb8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .status-card {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        .status-dot.offline { background: #ff4d4d; }
+        .status-dot.scanning { background: #ffd700; }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .scan-section, .portfolio-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .scan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .scan-header h3 {
+            font-size: 1.2rem;
+            color: #00d4ff;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #00d4ff, #7b2cb8);
+            color: #fff;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: rgba(0,255,136,0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        .btn-success:hover {
+            background: rgba(0,255,136,0.3);
+        }
+        .btn-danger {
+            background: rgba(255,77,77,0.2);
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+        }
+        .btn-danger:hover {
+            background: rgba(255,77,77,0.3);
+        }
+        .top-picks {
+            display: grid;
+            gap: 12px;
+        }
+        .pick-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 120px 60px;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+        .pick-card:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        .pick-card.selected {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.1);
+        }
+        .pick-rank {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .pick-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 2px;
+        }
+        .pick-info p {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .pick-action {
+            text-align: center;
+        }
+        .action-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .action-buy {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        .action-sell {
+            background: rgba(255, 77, 77, 0.2);
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+        }
+        .action-hold {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            border: 1px solid #ffd700;
+        }
+        .pick-score {
+            text-align: right;
+        }
+        .score-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .score-label {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        .pick-select {
+            display: flex;
+            justify-content: center;
+        }
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .checkbox:hover {
+            border-color: #00ff88;
+        }
+        .checkbox.checked {
+            background: #00ff88;
+            border-color: #00ff88;
+        }
+        .checkbox.checked::after {
+            content: '✓';
+            color: #000;
+            font-weight: bold;
+        }
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .portfolio-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .summary-label {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        .summary-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        .summary-value.green { color: #00ff88; }
+        .summary-value.red { color: #ff4d4d; }
+        .portfolio-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .portfolio-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .portfolio-item.profit {
+            border-left: 3px solid #00ff88;
+        }
+        .portfolio-item.loss {
+            border-left: 3px solid #ff4d4d;
+        }
+        .portfolio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .portfolio-symbol {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .portfolio-pnl {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .portfolio-pnl.positive { color: #00ff88; }
+        .portfolio-pnl.negative { color: #ff4d4d; }
+        .portfolio-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .portfolio-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .portfolio-actions .btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7b2cb8);
+            transition: width 0.3s;
+        }
+        .recommendation-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 3px solid #00d4ff;
+        }
+        .recommendation-title {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .recommendation-text {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .tab.active {
+            background: #00d4ff;
+            color: #000;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .log-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            font-size: 0.8rem;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: #666;
+            margin-right: 10px;
+        }
+        .log-buy { color: #00ff88; }
+        .log-sell { color: #ff4d4d; }
+        .log-info { color: #00d4ff; }
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .pick-card {
+                grid-template-columns: 40px 1fr 80px 100px;
+            }
+            .pick-select {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Stock Prediction Portfolio</h1>
+        <p>AI-Powered Daily Recommendations | Portfolio Tracking | Smart Sell Alerts</p>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-card">
+            <span class="status-dot offline" id="api-status"></span>
+            <span id="api-text">API Offline</span>
+        </div>
+        <div class="status-card">
+            <span>Last Scan:</span>
+            <span id="last-scan">Never</span>
+        </div>
+        <div class="status-card">
+            <span>Portfolio Value:</span>
+            <span id="portfolio-value">$0.00</span>
+        </div>
+        <div class="status-card">
+            <span>Active Positions:</span>
+            <span id="active-positions">0</span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('recommendations')">AI Recommendations</div>
+        <div class="tab" onclick="showTab('portfolio')">My Portfolio</div>
+        <div class="tab" onclick="showTab('logs')">Activity Log</div>
+    </div>
+
+    <div class="main-grid">
+        <div class="left-panel">
+            <!-- Recommendations Tab -->
+            <div id="tab-recommendations" class="tab-content active">
+                <div class="scan-section">
+                    <div class="scan-header">
+                        <h3>Today's Top Stock Picks</h3>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="scan-btn" onclick="loadScanResults()">
+                                Load Scan Results
+                            </button>
+                            <button class="btn btn-success" onclick="buySelected()">
+                                Buy Selected
+                            </button>
+                        </div>
+                    </div>
+                    <div class="progress-bar" id="progress-bar" style="display: none;">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="top-picks" id="top-picks">
+                        <div class="empty-state">
+                            <p>Click "Load Scan Results" to see today's AI recommendations</p>
+                            <p style="font-size: 0.8rem; margin-top: 10px;">
+                                Run: <code>python market_scanner.py</code> to generate fresh picks
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Tab -->
+            <div id="tab-portfolio" class="tab-content">
+                <div class="portfolio-section">
+                    <div class="scan-header">
+                        <h3>Your Portfolio</h3>
+                        <button class="btn btn-primary" onclick="refreshPortfolio()">
+                            Refresh Prices
+                        </button>
+                    </div>
+                    <div class="portfolio-summary">
+                        <div class="summary-card">
+                            <div class="summary-label">Total Invested</div>
+                            <div class="summary-value" id="total-invested">$0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Current Value</div>
+                            <div class="summary-value" id="current-value">$0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Unrealized P&L</div>
+                            <div class="summary-value" id="unrealized-pnl">$0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Cash Available</div>
+                            <div class="summary-value" id="cash-available">$10000.00</div>
+                        </div>
+                    </div>
+                    <div class="portfolio-list" id="portfolio-list">
+                        <div class="empty-state">
+                            <p>No active positions</p>
+                            <p style="font-size: 0.8rem; margin-top: 10px;">
+                                Select stocks from the Recommendations tab to start building your portfolio
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="tab-logs" class="tab-content">
+                <div class="scan-section">
+                    <div class="scan-header">
+                        <h3>Activity Log</h3>
+                        <button class="btn btn-danger" onclick="clearLogs()">Clear</button>
+                    </div>
+                    <div class="log-panel" id="log-panel">
+                        <div class="log-entry">
+                            <span class="log-time">[--:--:--]</span> Dashboard initialized
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <!-- Selected Stock Details -->
+            <div class="scan-section">
+                <div class="scan-header">
+                    <h3>Stock Details</h3>
+                </div>
+                <div id="stock-details">
+                    <div class="empty-state" style="padding: 20px;">
+                        <p style="font-size: 0.9rem;">Click a stock to view details</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Alerts -->
+            <div class="scan-section" id="alerts-section" style="display: none;">
+                <div class="scan-header">
+                    <h3>Sell Recommendations</h3>
+                </div>
+                <div id="sell-alerts"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="scan-section">
+                <div class="scan-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-success" onclick="resetPortfolio()">
+                        Reset Portfolio
+                    </button>
+                    <button class="btn btn-primary" onclick="exportPortfolio()">
+                        Export Portfolio
+                    </button>
+                    <button class="btn btn-danger" onclick="importPortfolio()">
+                        Import Portfolio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let portfolio = JSON.parse(localStorage.getItem('stockPortfolio')) || {
+            cash: 10000,
+            positions: [],
+            history: []
+        };
+        let currentScanResults = JSON.parse(localStorage.getItem('lastScanResults')) || null;
+        let selectedStocks = new Set();
+
+        // Load saved state on startup
+        window.onload = function() {
+            checkApi();
+            setInterval(checkApi, 5000);
+            updatePortfolioDisplay();
+            if (currentScanResults) {
+                displayTopPicks(currentScanResults.top_picks);
+                document.getElementById('last-scan').textContent = new Date(currentScanResults.date).toLocaleTimeString();
+            }
+        };
+
+        async function checkApi() {
+            try {
+                const response = await fetch('http://127.0.0.1:8005/health', { method: 'GET' });
+                const data = await response.json();
+                document.getElementById('api-status').className = 'status-dot online';
+                document.getElementById('api-text').textContent = 'API Online';
+                return true;
+            } catch (error) {
+                document.getElementById('api-status').className = 'status-dot offline';
+                document.getElementById('api-text').textContent = 'API Offline';
+                return false;
+            }
+        }
+
+        function log(message, type = 'info') {
+            const panel = document.getElementById('log-panel');
+            const time = new Date().toLocaleTimeString();
+            const typeClass = type === 'buy' ? 'log-buy' : type === 'sell' ? 'log-sell' : 'log-info';
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="${typeClass}">${message}</span>`;
+            panel.insertBefore(entry, panel.firstChild);
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        async function loadScanResults() {
+            try {
+                // Try to fetch from file - in production, serve via HTTP server
+                const response = await fetch('scan_results.json?t=' + Date.now());
+                if (!response.ok) throw new Error('File not found');
+                const data = await response.json();
+                currentScanResults = data;
+                localStorage.setItem('lastScanResults', JSON.stringify(data));
+                displayTopPicks(data.top_picks);
+                document.getElementById('last-scan').textContent = new Date(data.date).toLocaleTimeString();
+                log(`Loaded ${data.total_scanned} stock scan results`, 'info');
+            } catch (error) {
+                // Fallback: prompt user to run scanner
+                log('Scan results not found. Please run: python market_scanner.py', 'info');
+                alert('Please run the market scanner first:\n\npython market_scanner.py');
+            }
+        }
+
+        function displayTopPicks(picks) {
+            const container = document.getElementById('top-picks');
+            container.innerHTML = '';
+
+            if (!picks || picks.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No recommendations available</p></div>';
+                return;
+            }
+
+            picks.forEach((stock, index) => {
+                const isSelected = selectedStocks.has(stock.symbol);
+                const card = document.createElement('div');
+                card.className = 'pick-card' + (isSelected ? ' selected' : '');
+                card.dataset.symbol = stock.symbol;
+
+                card.innerHTML = `
+                    <div class="pick-rank" style="color: ${index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : '#fff'}">#${index + 1}</div>
+                    <div class="pick-info" onclick="showStockDetails('${stock.symbol}')" style="cursor: pointer;">
+                        <h4>${stock.symbol}</h4>
+                        <p>$${stock.price.toFixed(2)} | 7d: ${stock.change_7d > 0 ? '+' : ''}${stock.change_7d.toFixed(1)}%</p>
+                    </div>
+                    <div class="pick-action" onclick="showStockDetails('${stock.symbol}')" style="cursor: pointer;">
+                        <span class="action-badge action-${stock.action}">${stock.action}</span>
+                    </div>
+                    <div class="pick-score" onclick="showStockDetails('${stock.symbol}')" style="cursor: pointer;">
+                        <div class="score-value">${stock.score}</div>
+                        <div class="score-label">SCORE</div>
+                    </div>
+                    <div class="pick-select">
+                        <div class="checkbox ${isSelected ? 'checked' : ''}" onclick="toggleSelection('${stock.symbol}', this)"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleSelection(symbol, el) {
+            el.classList.toggle('checked');
+            const card = el.closest('.pick-card');
+            card.classList.toggle('selected');
+
+            if (selectedStocks.has(symbol)) {
+                selectedStocks.delete(symbol);
+                log(`Deselected ${symbol}`);
+            } else {
+                selectedStocks.add(symbol);
+                log(`Selected ${symbol} for purchase`);
+            }
+        }
+
+        function showStockDetails(symbol) {
+            if (!currentScanResults) return;
+            const stock = currentScanResults.top_picks.find(s => s.symbol === symbol);
+            if (!stock) return;
+
+            const container = document.getElementById('stock-details');
+            container.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <h2 style="color: #00d4ff">${stock.symbol}</h2>
+                    <p style="color: #888;">${stock.name}</p>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <p><strong>Current Price:</strong> $${stock.price.toFixed(2)}</p>
+                    <p><strong>24h Change:</strong> <span style="color: ${stock.change_24h >= 0 ? '#00ff88' : '#ff4d4d'}">${stock.change_24h > 0 ? '+' : ''}${stock.change_24h.toFixed(2)}%</span></p>
+                    <p><strong>7-day Change:</strong> <span style="color: ${stock.change_7d >= 0 ? '#00ff88' : '#ff4d4d'}">${stock.change_7d > 0 ? '+' : ''}${stock.change_7d.toFixed(2)}%</span></p>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <p><strong>AI Recommendation:</strong> <span class="action-badge action-${stock.action}">${stock.action.toUpperCase()}</span></p>
+                    <p><strong>Confidence Score:</strong> ${stock.score}/100</p>
+                </div>
+                <div>
+                    <p style="margin-bottom: 5px;"><strong>Prediction Probabilities:</strong></p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <div style="flex: ${stock.probabilities.buy}; background: #00ff88; height: 20px; border-radius: 4px;"></div>
+                        <div style="flex: ${stock.probabilities.hold}; background: #ffd700; height: 20px; border-radius: 4px;"></div>
+                        <div style="flex: ${stock.probabilities.sell}; background: #ff4d4d; height: 20px; border-radius: 4px;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #888;">
+                        <span>Buy: ${stock.probabilities.buy}%</span>
+                        <span>Hold: ${stock.probabilities.hold}%</span>
+                        <span>Sell: ${stock.probabilities.sell}%</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button class="btn btn-success" style="flex: 1;" onclick="buyStock('${stock.symbol}', ${stock.price})">Buy</button>
+                    <button class="btn btn-primary" style="flex: 1;" onclick="trackStock('${stock.symbol}')">Track Only</button>
+                </div>
+            `;
+        }
+
+        function buySelected() {
+            if (selectedStocks.size === 0) {
+                alert('Please select stocks first');
+                return;
+            }
+
+            if (!currentScanResults) {
+                alert('Please load scan results first');
+                return;
+            }
+
+            selectedStocks.forEach(symbol => {
+                const stock = currentScanResults.top_picks.find(s => s.symbol === symbol);
+                if (stock) {
+                    buyStock(symbol, stock.price);
+                }
+            });
+
+            selectedStocks.clear();
+            document.querySelectorAll('.checkbox').forEach(el => el.classList.remove('checked'));
+            document.querySelectorAll('.pick-card').forEach(el => el.classList.remove('selected'));
+        }
+
+        function buyStock(symbol, price) {
+            if (portfolio.cash < price) {
+                log(`Insufficient cash to buy ${symbol}`, 'sell');
+                alert('Insufficient cash!');
+                return;
+            }
+
+            const position = {
+                symbol: symbol,
+                buyPrice: price,
+                currentPrice: price,
+                buyDate: new Date().toISOString(),
+                recommendation: currentScanResults?.top_picks.find(s => s.symbol === symbol)?.action || 'buy',
+                recommendationScore: currentScanResults?.top_picks.find(s => s.symbol === symbol)?.score || 0
+            };
+
+            portfolio.positions.push(position);
+            portfolio.cash -= price;
+
+            // Add to history
+            portfolio.history.push({
+                action: 'BUY',
+                symbol: symbol,
+                price: price,
+                date: new Date().toISOString()
+            });
+
+            savePortfolio();
+            updatePortfolioDisplay();
+            showTab('portfolio');
+            log(`Bought ${symbol} at $${price.toFixed(2)}`, 'buy');
+        }
+
+        function sellStock(symbol) {
+            const idx = portfolio.positions.findIndex(p => p.symbol === symbol);
+            if (idx < 0) return;
+
+            const position = portfolio.positions[idx];
+            const sellPrice = position.currentPrice;
+            const pnl = sellPrice - position.buyPrice;
+
+            portfolio.cash += sellPrice;
+            portfolio.positions.splice(idx, 1);
+
+            portfolio.history.push({
+                action: 'SELL',
+                symbol: symbol,
+                price: sellPrice,
+                pnl: pnl,
+                date: new Date().toISOString()
+            });
+
+            savePortfolio();
+            updatePortfolioDisplay();
+            log(`Sold ${symbol} at $${sellPrice.toFixed(2)} (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`, pnl >= 0 ? 'buy' : 'sell');
+        }
+
+        function trackStock(symbol) {
+            log(`Added ${symbol} to watchlist`, 'info');
+            alert(`${symbol} added to watchlist`);
+        }
+
+        function refreshPortfolio() {
+            if (!currentScanResults) {
+                alert('Please load scan results first to update prices');
+                return;
+            }
+
+            // Update current prices from scan results
+            portfolio.positions.forEach(pos => {
+                const currentStock = currentScanResults?.top_picks.find(s => s.symbol === pos.symbol);
+                if (currentStock) {
+                    pos.currentPrice = currentStock.price;
+                    pos.currentAction = currentStock.action;
+                    pos.currentScore = currentStock.score;
+                }
+            });
+
+            updatePortfolioDisplay();
+            checkSellRecommendations();
+            log('Portfolio prices updated');
+        }
+
+        function checkSellRecommendations() {
+            const sellAlerts = [];
+
+            portfolio.positions.forEach(pos => {
+                const currentStock = currentScanResults?.top_picks.find(s => s.symbol === pos.symbol);
+                if (currentStock) {
+                    const profit = currentStock.price - pos.buyPrice;
+                    const profitPct = (profit / pos.buyPrice) * 100;
+
+                    if (currentStock.action === 'sell' || profitPct > 10) {
+                        sellAlerts.push({
+                            symbol: pos.symbol,
+                            buyPrice: pos.buyPrice,
+                            currentPrice: currentStock.price,
+                            profit: profit,
+                            reason: currentStock.action === 'sell' ? 'AI Sell Signal' : 'Take Profit (+10%)'
+                        });
+                    }
+                }
+            });
+
+            if (sellAlerts.length > 0) {
+                const section = document.getElementById('alerts-section');
+                const container = document.getElementById('sell-alerts');
+                section.style.display = 'block';
+                container.innerHTML = sellAlerts.map(alert => `
+                    <div class="recommendation-box" style="border-left-color: #ff4d4d;">
+                        <div class="recommendation-title" style="color: #ff4d4d;">
+                            SELL: ${alert.symbol}
+                        </div>
+                        <div class="recommendation-text">
+                            Buy: $${alert.buyPrice.toFixed(2)} | Now: $${alert.currentPrice.toFixed(2)}<br>
+                            Profit: $${alert.profit.toFixed(2)}<br>
+                            <strong>Reason: ${alert.reason}</strong>
+                        </div>
+                        <button class="btn btn-danger" style="margin-top: 10px; width: 100%;" onclick="sellStock('${alert.symbol}')">
+                            Sell Now
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updatePortfolioDisplay() {
+            // Update summary
+            let totalInvested = 0;
+            let currentValue = 0;
+
+            portfolio.positions.forEach(pos => {
+                totalInvested += pos.buyPrice;
+                currentValue += pos.currentPrice || pos.buyPrice;
+            });
+
+            const pnl = currentValue - totalInvested;
+            const pnlClass = pnl >= 0 ? 'green' : 'red';
+
+            document.getElementById('total-invested').textContent = `$${totalInvested.toFixed(2)}`;
+            document.getElementById('current-value').textContent = `$${currentValue.toFixed(2)}`;
+            document.getElementById('unrealized-pnl').textContent = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+            document.getElementById('unrealized-pnl').className = 'summary-value ' + pnlClass;
+            document.getElementById('cash-available').textContent = `$${portfolio.cash.toFixed(2)}`;
+            document.getElementById('active-positions').textContent = portfolio.positions.length;
+            document.getElementById('portfolio-value').textContent = `$${(portfolio.cash + currentValue).toFixed(2)}`;
+
+            // Update positions list
+            const list = document.getElementById('portfolio-list');
+            if (portfolio.positions.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <p>No active positions</p>
+                        <p style="font-size: 0.8rem; margin-top: 10px;">
+                            Select stocks from Recommendations tab to build your portfolio
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = portfolio.positions.map(pos => {
+                const currentPrice = pos.currentPrice || pos.buyPrice;
+                const profit = currentPrice - pos.buyPrice;
+                const profitPct = (profit / pos.buyPrice) * 100;
+                const profitClass = profit >= 0 ? 'positive' : 'negative';
+                const itemClass = profit >= 0 ? 'profit' : 'loss';
+                const currentRec = pos.currentAction || 'hold';
+
+                return `
+                    <div class="portfolio-item ${itemClass}">
+                        <div class="portfolio-header">
+                            <span class="portfolio-symbol">${pos.symbol}</span>
+                            <span class="portfolio-pnl ${profitClass}">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)} (${profitPct.toFixed(1)}%)</span>
+                        </div>
+                        <div class="portfolio-details">
+                            <span>Buy: $${pos.buyPrice.toFixed(2)}</span>
+                            <span>Current: $${currentPrice.toFixed(2)}</span>
+                            <span>AI says: <span class="action-badge action-${currentRec}">${currentRec}</span></span>
+                        </div>
+                        <div class="portfolio-actions">
+                            <button class="btn btn-success" onclick="showStockDetails('${pos.symbol}')">View</button>
+                            <button class="btn btn-danger" onclick="sellStock('${pos.symbol}')">Sell</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            savePortfolio();
+        }
+
+        function savePortfolio() {
+            localStorage.setItem('stockPortfolio', JSON.stringify(portfolio));
+        }
+
+        function resetPortfolio() {
+            if (!confirm('Reset portfolio? This will clear all positions and return cash to $10,000.')) return;
+
+            portfolio = {
+                cash: 10000,
+                positions: [],
+                history: []
+            };
+            savePortfolio();
+            updatePortfolioDisplay();
+            document.getElementById('alerts-section').style.display = 'none';
+            log('Portfolio reset', 'info');
+        }
+
+        function exportPortfolio() {
+            const data = JSON.stringify(portfolio, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'portfolio_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+            log('Portfolio exported', 'info');
+        }
+
+        function importPortfolio() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        portfolio = JSON.parse(event.target.result);
+                        savePortfolio();
+                        updatePortfolioDisplay();
+                        log('Portfolio imported', 'info');
+                    } catch (err) {
+                        alert('Invalid file');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearLogs() {
+            document.getElementById('log-panel').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

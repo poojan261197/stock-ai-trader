@@ -1,0 +1,16 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.venv
+env
+venv
+realtime-agent/logs
+realtime-agent/server.log
+realtime-agent/server.err.log
+realtime-agent/server.pid
+output
+output-agent
