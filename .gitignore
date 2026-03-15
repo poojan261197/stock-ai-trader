@@ -21,6 +21,7 @@ yarn-error.log*
 dist/
 dist-ssr/
 *.local
+.vite/
 
 # IDE
 .vscode/
