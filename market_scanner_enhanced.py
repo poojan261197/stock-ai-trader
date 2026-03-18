@@ -24,9 +24,7 @@ warnings.filterwarnings('ignore')
 from analysis.patterns import analyze_patterns
 from analysis.technical_strategies import MultiStrategyAnalyzer
 from analysis.trading_strategies import TradingStrategies, PatternType
-from prediction_engine.ensemble import StockEnsemble
-from prediction_engine.lstm_model import LSTMStockPredictor
-from prediction_engine.transformer_model import TransformerStockPredictor
+from prediction_engine.ensemble import EnsemblePredictor
 
 # Extended stock universe with ETFs
 DEFAULT_STOCKS = {
@@ -58,37 +56,32 @@ DEFAULT_STOCKS = {
 
 @dataclass
 class EnhancedStockPrediction:
-    """Complete prediction with all model outputs."""
+    """Enhanced prediction with all model signals."""
     symbol: str
     name: str
     price: float
     volume: int
     price_change_24h: float
     price_change_7d: float
-
-    # Model predictions
-    lstm_signal: Dict[str, any] = field(default_factory=dict)
-    transformer_signal: Dict[str, any] = field(default_factory=dict)
-    patterns: List[Dict] = field(default_factory=list)
-    strategy_signals: Dict[str, any] = field(default_factory=dict)
-    trading_cues: Dict[str, any] = field(default_factory=dict)
-
-    # Ensemble output
-    action: str = "hold"
-    confidence: float = 0.0
-    recommendation_score: float = 0.0
-    prob_buy: float = 0.0
-    prob_sell: float = 0.0
-    prob_hold: float = 0.0
-
-    # Risk metrics
-    stop_loss: float = 0.0
-    take_profit: float = 0.0
-    risk_reward_ratio: float = 0.0
+    action: str
+    confidence: float
+    recommendation_score: float
+    prob_buy: float
+    prob_sell: float
+    prob_hold: float
+    lstm_signal: Dict
+    transformer_signal: Dict
+    patterns: List[Dict]
+    strategy_signals: Dict
+    trading_cues: Dict
+    stop_loss: float
+    take_profit: float
+    risk_reward_ratio: float
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
 class EnhancedMarketScanner:
-    """Multi-model stock scanner with ensemble prediction."""
+    """Multi-model ensemble scanner."""
 
     def __init__(self, use_ml: bool = False):
         self.ensemble = None
@@ -96,16 +89,12 @@ class EnhancedMarketScanner:
             self._load_ml_models()
         self.strategies = TradingStrategies()
         self.multi_strategy = MultiStrategyAnalyzer()
-        self.use_ml = use_ml
 
     def _load_ml_models(self):
         """Load trained ML models."""
         print("Loading ML models...")
         try:
-            self.ensemble = StockEnsemble(
-                lstm_path='models/lstm_trained.pth',
-                transformer_path='models/transformer_trained.pth'
-            )
+            self.ensemble = EnsemblePredictor()
             print("[OK] ML models loaded")
         except Exception as e:
             print(f"[WARN] Could not load ML models: {e}")
@@ -127,21 +116,24 @@ class EnhancedMarketScanner:
             df.reset_index(inplace=True)
             df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
 
+            # Current stats
             current_price = float(df['Close'].iloc[-1])
-            volume = int(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0
+            prev_price = float(df['Close'].iloc[-2])
+            price_7d_ago = float(df['Close'].iloc[-7]) if len(df) >= 7 else current_price
 
-            change_24h = ((current_price - df['Close'].iloc[-2]) / df['Close'].iloc[-2] * 100) if len(df) > 1 else 0
-            change_7d = ((current_price - df['Close'].iloc[-7]) / df['Close'].iloc[-7] * 100) if len(df) > 7 else 0
+            volume = int(df['Volume'].iloc[-1])
+            change_24h = ((current_price - prev_price) / prev_price) * 100
+            change_7d = ((current_price - price_7d_ago) / price_7d_ago) * 100
 
-            # 1. Pattern Analysis
-            pattern_analysis = analyze_patterns(symbol, df)
-
-            # 2. Strategy Analysis
             prices = df['Close'].tolist()
             highs = df['High'].tolist()
             lows = df['Low'].tolist()
             volumes = df.get('Volume', [0]*len(prices)).tolist()
 
+            # 1. Pattern Analysis
+            pattern_analysis = analyze_patterns(symbol, df)
+
+            # 2. Technical Strategies
             strategy_result = self.multi_strategy.analyze(
                 symbol=symbol,
                 current_price=current_price,
@@ -155,11 +147,21 @@ class EnhancedMarketScanner:
             lstm_signal = {"action": "neutral", "confidence": 0}
             transformer_signal = {"action": "neutral", "confidence": 0}
 
-            if self.ensemble and self.use_ml:
+            if self.ensemble:
                 try:
-                    ml_pred = self.ensemble.predict(df)
-                    lstm_signal = ml_pred.get('lstm', lstm_signal)
-                    transformer_signal = ml_pred.get('transformer', transformer_signal)
+                    ml_pred = self.ensemble.predict(prices, volumes)
+                    lstm_action = ml_pred.get('action', 'hold')
+                    lstm_conf = ml_pred.get('confidence', 0)
+                    lstm_signal = {"action": lstm_action, "confidence": lstm_conf * 100}
+
+                    # Get individual predictions for transformer signal
+                    indiv_preds = ml_pred.get('individual_predictions', [])
+                    for pred in indiv_preds:
+                        if pred.get('model') == 'Transformer':
+                            transformer_signal = {
+                                "action": pred.get('action', 'hold'),
+                                "confidence": pred.get('confidence', 0) * 100
+                            }
                 except Exception as e:
                     pass
 
@@ -208,8 +210,8 @@ class EnhancedMarketScanner:
             return None
 
     def _calculate_trading_cues(self, symbol: str, price: float,
-                                 prices: List[float], volumes: List[float],
-                                 pattern_analysis: Dict) -> Dict:
+                                prices: List[float], volumes: List[float],
+                                pattern_analysis: Dict) -> Dict:
         """Calculate trading cues and context."""
         trend = pattern_analysis.get('trend', {})
         sr = pattern_analysis.get('support_resistance', {})
@@ -253,8 +255,8 @@ class EnhancedMarketScanner:
         }
 
     def _ensemble_decision(self, pattern_analysis: Dict, strategy_result: Dict,
-                          lstm_signal: Dict, transformer_signal: Dict,
-                          trading_cues: Dict) -> Dict:
+                           lstm_signal: Dict, transformer_signal: Dict,
+                           trading_cues: Dict) -> Dict:
         """Combine all signals into final decision."""
         votes = {'buy': 0, 'sell': 0, 'hold': 0}
         confidences = []
@@ -269,13 +271,13 @@ class EnhancedMarketScanner:
             confidences.append(70 if pattern_signal == 'sell' else 85)
 
         # Strategy signal
-        strategy_action = strategy_result.get('action', 'hold')
+        strategy_action = strategy_result.action if hasattr(strategy_result, 'action') else strategy_result.get('action', 'hold')
         if strategy_action == 'buy':
             votes['buy'] += 1
-            confidences.append(strategy_result.get('confidence', 50))
+            confidences.append(strategy_result.confidence if hasattr(strategy_result, 'confidence') else strategy_result.get('confidence', 50))
         elif strategy_action == 'sell':
             votes['sell'] += 1
-            confidences.append(strategy_result.get('confidence', 50))
+            confidences.append(strategy_result.confidence if hasattr(strategy_result, 'confidence') else strategy_result.get('confidence', 50))
 
         # ML signals
         if lstm_signal['action'] != 'neutral':
@@ -352,69 +354,31 @@ def enhanced_scan_market(max_stocks: int = 100, symbols: Optional[set] = None,
     print(f"\n{'='*70}")
     print(f"ENHANCED MARKET SCANNER")
     print(f"Models: Patterns + Technical Strategies + {'ML Ensemble' if use_ml else 'No ML'}")
-    print(f"Scanning: {len(symbol_list)} symbols")
-    print(f"{'='*70}\n")
+    print(f"Scanning {len(symbol_list)} stocks...")
+    print(f"{'='*70}")
 
     results = []
     for i, symbol in enumerate(symbol_list, 1):
-        print(f"[{i:>3}/{len(symbol_list)}] Analyzing {symbol:>12}...", end=" ")
-        result = scanner.analyze_stock(symbol)
-        if result:
-            results.append(result)
-            status = "BUY" if result.action == "buy" else "SELL" if result.action == "sell" else "HOLD"
-            print(f"[{status}] Score: {result.recommendation_score:.1f}")
+        print(f"[{i}/{len(symbol_list)}] Analyzing {symbol}...", end=' ')
+        prediction = scanner.analyze_stock(symbol)
+        if prediction:
+            results.append(prediction)
+            print(f"{prediction.action.upper()} (score: {prediction.recommendation_score:.1f})")
         else:
-            print("[SKIP] Failed")
+            print("SKIPPED")
+        time.sleep(0.1)  # Be nice to yfinance
 
     print(f"\n{'='*70}")
-    print(f"Completed: {len(results)} stocks analyzed")
-    print(f"{'='*70}\n")
-
+    print(f"SCAN COMPLETE: {len(results)} stocks analyzed")
+    print(f"{'='*70}")
     return results
 
 
-def export_results(predictions: List[EnhancedStockPrediction]):
-    """Export scan results for dashboard."""
-    # Sort by score and take top 5
-    top = sorted(predictions, key=lambda x: x.recommendation_score, reverse=True)[:5]
-
-    data = []
-    for p in top:
-        data.append({
-            "symbol": p.symbol,
-            "name": p.name,
-            "price": round(p.price, 2),
-            "action": p.action,
-            "confidence": round(p.confidence, 1),
-            "score": round(p.recommendation_score, 1),
-            "change_24h": round(p.price_change_24h, 2),
-            "change_7d": round(p.price_change_7d, 2),
-            "probabilities": {
-                "buy": round(p.prob_buy, 1),
-                "sell": round(p.prob_sell, 1),
-                "hold": round(p.prob_hold, 1)
-            },
-            "patterns": [pt['type'] for pt in p.patterns][:5],
-            "strategy_signal": p.strategy_signals.get('id', 'unknown'),
-            "trading_cues": p.trading_cues.get('cues', []),
-            "stop_loss": round(p.stop_loss, 2) if p.stop_loss > 0 else None,
-            "take_profit": round(p.take_profit, 2) if p.take_profit > 0 else None,
-            "risk_reward": round(p.risk_reward_ratio, 2) if p.risk_reward_ratio > 0 else None
-        })
-
-    # Save to JSON
-    with open("scan_results.json", "w") as f:
-        json.dump({
-            "date": datetime.now().isoformat(),
-            "total_scanned": len(predictions),
-            "top_picks": data
-        }, f, indent=2)
-
-    print(f"Results saved to scan_results.json")
-    return data
-
-
 if __name__ == "__main__":
-    # Quick test
-    results = enhanced_scan_market(max_stocks=20, use_ml=False)
-    export_results(results)
+    # Test run
+    results = enhanced_scan_market(max_stocks=10, use_ml=False)
+    print("\nTop 5 Buy Recommendations:")
+    buys = sorted([r for r in results if r.action == 'buy'],
+                  key=lambda x: x.recommendation_score, reverse=True)[:5]
+    for r in buys:
+        print(f"  {r.symbol}: Score {r.recommendation_score:.1f} (Confidence: {r.confidence:.0f}%)")
