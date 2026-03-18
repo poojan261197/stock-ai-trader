@@ -261,7 +261,24 @@ git clean -fd
 - **analysis/patterns.py** - Candlestick pattern detection (doji, hammer, engulfing)
 - **analysis/technical_strategies.py** - Multi-strategy analyzer with momentum, mean reversion, breakout, trend following, volume confirmation
 - **analysis/trading_strategies.py** - Pattern detection (double top/bottom, breakout signals)
-- **market_scanner_enhanced.py** - Multi-model ensemble scanner (NEW)
+- **analysis/advanced_strategies.py** - 12 professional-grade strategies (NEW)
+- **market_scanner_enhanced.py** - Multi-model ensemble scanner
+
+### Advanced Strategies (Added 2026-03-18 Evening)
+| Strategy | Signal Type |
+|----------|-------------|
+| Bollinger Band Squeeze | Volatility breakout |
+| Golden Cross | Long-term trend change |
+| RSI Divergence | Reversal detection |
+| MACD Crossover | Momentum shift |
+| ADX Trend Strength | Trend intensity |
+| Fibonacci Retracement | Support/resistance levels |
+| Ichimoku Cloud | Multi-factor trend |
+| Parabolic SAR | Momentum reversal |
+| Stochastic RSI | Extreme oversold/overbought |
+| VWAP Deviation | Institutional benchmark |
+| Donchian Channel | Breakout trading |
+| Keltner Channel | Volatility bands |
 
 ### ML Models Trained
 ```
@@ -273,14 +290,15 @@ Training Results:
 ```
 
 ### Ensemble Decision Logic
-The scanner combines signals from multiple models:
+The scanner combines signals from **17 models**:
 1. **Pattern Analysis**: Candlestick patterns, chart patterns (double tops/bottoms)
-2. **Technical Strategies**: 5 strategies vote (momentum, mean reversion, breakout, trend following, volume confirmation)
-3. **LSTM Signal**: Neural network prediction with confidence weight
-4. **Transformer Signal**: Transformer model prediction with confidence weight
-5. **Trading Cues**: Trend strength, support/resistance proximity, volume spikes
+2. **Technical Strategies**: 5 base strategies (momentum, mean_reversion, breakout, trend_following, volume)
+3. **Advanced Strategies**: 12 professional strategies (Bollinger, Golden Cross, RSI Divergence, MACD, ADX, Fibonacci, Ichimoku, Parabolic SAR, StochRSI, VWAP, Donchian, Keltner)
+4. **LSTM Signal**: Neural network prediction with confidence weight
+5. **Transformer Signal**: Transformer model prediction with confidence weight
+6. **Trading Cues**: Trend strength, support/resistance proximity, volume spikes
 
-**Voting weights**: Pattern=1, Strategy=1, LSTM/Transformer=0.5 each, Trading cues=0.3-0.5
+**Voting weights**: Pattern=1, Strategy=1, Advanced=0.4 each, ML=0.5 each, Cues=0.3-0.5
 
 ### Risk Management
 - ATR-based stop loss (2x ATR) and take profit (3x ATR)
@@ -338,7 +356,17 @@ The scanner combines signals from multiple models:
 
 ## Session Log
 
-### 2026-03-18 - Multi-Model Prediction System Completed
+### 2026-03-18 Evening - 12 Advanced Strategies Added
+- [x] Created analysis/advanced_strategies.py with 12 new strategies
+- [x] Integrated advanced strategies into market_scanner_enhanced.py
+- [x] Added Bollinger Squeeze, Golden Cross, RSI Divergence, MACD, ADX
+- [x] Added Fibonacci, Ichimoku, Parabolic SAR, StochRSI, VWAP, Donchian
+- [x] Updated ensemble decision voting weights for 17 total strategies
+- [x] Scanner now returns real predictions from all models
+- [x] Committed changes to GitHub
+- [x] Frontend running on port 3003 (http://localhost:3003)
+
+### 2026-03-18 Day - Multi-Model Prediction System Completed
 - [x] Created analysis/patterns.py for candlestick pattern detection
 - [x] Created analysis/technical_strategies.py (5 trading strategies)
 - [x] Created analysis/trading_strategies.py (advanced patterns + ATR)
