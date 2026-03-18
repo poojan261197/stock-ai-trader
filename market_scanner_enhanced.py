@@ -24,6 +24,7 @@ warnings.filterwarnings('ignore')
 from analysis.patterns import analyze_patterns
 from analysis.technical_strategies import MultiStrategyAnalyzer
 from analysis.trading_strategies import TradingStrategies, PatternType
+from analysis.advanced_strategies import AdvancedStrategyAnalyzer, PairsTradingAnalyzer
 from prediction_engine.ensemble import EnsemblePredictor
 
 # Extended stock universe with ETFs
@@ -85,6 +86,8 @@ class EnhancedMarketScanner:
 
     def __init__(self, use_ml: bool = False):
         self.ensemble = None
+        self.advanced_strategies = AdvancedStrategyAnalyzer()
+        self.pairs_analyzer = PairsTradingAnalyzer()
         if use_ml:
             self._load_ml_models()
         self.strategies = TradingStrategies()
@@ -143,7 +146,12 @@ class EnhancedMarketScanner:
                 volumes=volumes
             )
 
-            # 3. ML Models (if available)
+            # 3. Advanced Strategies
+            advanced_signals = self.advanced_strategies.analyze(
+                symbol, prices, highs, lows, volumes
+            )
+
+            # 4. ML Models (if available)
             lstm_signal = {"action": "neutral", "confidence": 0}
             transformer_signal = {"action": "neutral", "confidence": 0}
 
@@ -173,7 +181,7 @@ class EnhancedMarketScanner:
             # 5. Ensemble Decision
             final_decision = self._ensemble_decision(
                 pattern_analysis, strategy_result, lstm_signal,
-                transformer_signal, trading_cues
+                transformer_signal, trading_cues, advanced_signals
             )
 
             # Calculate risk metrics
@@ -256,10 +264,12 @@ class EnhancedMarketScanner:
 
     def _ensemble_decision(self, pattern_analysis: Dict, strategy_result: Dict,
                            lstm_signal: Dict, transformer_signal: Dict,
-                           trading_cues: Dict) -> Dict:
+                           trading_cues: Dict, advanced_signals: List = None) -> Dict:
         """Combine all signals into final decision."""
         votes = {'buy': 0, 'sell': 0, 'hold': 0}
         confidences = []
+        if advanced_signals is None:
+            advanced_signals = []
 
         # Pattern signal
         pattern_signal = pattern_analysis.get('pattern_signal', 'neutral')
@@ -287,6 +297,12 @@ class EnhancedMarketScanner:
         if transformer_signal['action'] != 'neutral':
             votes[transformer_signal['action']] += 0.5
             confidences.append(transformer_signal['confidence'])
+
+        # Advanced strategy signals
+        for sig in advanced_signals:
+            if hasattr(sig, 'action') and sig.action in ['buy', 'sell']:
+                votes[sig.action] += 0.4
+                confidences.append(sig.confidence if hasattr(sig, 'confidence') else 50)
 
         # Trading cues
         cue_confidence = trading_cues.get('confidence', 50)
