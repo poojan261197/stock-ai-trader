@@ -21,7 +21,15 @@ import yfinance as yf
 import sys
 sys.path.insert(0, 'realtime-agent')
 from app import app as trading_app, create_app, AppSettings
-from market_scanner import scan_market, StockPrediction
+
+# Import enhanced scanner (with fallback)
+try:
+    from market_scanner_enhanced import enhanced_scan_market
+    USE_ENHANCED = True
+except ImportError as e:
+    print(f"Warning: Could not load enhanced scanner: {e}")
+    USE_ENHANCED = False
+    enhanced_scan_market = None
 
 app = Flask(__name__)
 CORS(app)
