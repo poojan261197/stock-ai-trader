@@ -162,18 +162,13 @@ export default function ScanPage() {
   )
 }
 
-function StockCard({ stock, rank, isSelected, onToggle }) {
-  const getActionClass = (action) => {
-    switch (action) {
-      case 'buy':
-        return 'bg-success/10 border-success text-success'
-      case 'sell':
-        return 'bg-danger/10 border-danger text-danger'
-      default:
-        return 'bg-warning/10 border-warning text-warning'
-    }
-  }
+const ACTION_CLASSES = {
+  buy: 'bg-success/10 border-success text-success',
+  sell: 'bg-danger/10 border-danger text-danger',
+  hold: 'bg-warning/10 border-warning text-warning'
+}
 
+function StockCard({ stock, rank, isSelected, onToggle }) {
   const getConfidenceColor = (conf) => {
     if (conf >= 80) return 'text-success'
     if (conf >= 60) return 'text-warning'
@@ -242,9 +237,7 @@ function StockCard({ stock, rank, isSelected, onToggle }) {
 
         {/* Action */}
         <div
-          className={`px-4 py-2 rounded-full text-sm font-bold border flex items-center gap-1.5 shadow-lg ${getActionClass(
-            stock.action
-          )}`}
+          className={`px-4 py-2 rounded-full text-sm font-bold border flex items-center gap-1.5 shadow-lg ${ACTION_CLASSES[stock.action] || ACTION_CLASSES.hold}`}
         >
           {stock.action === 'buy' ? <TrendingUp className="text-success" size={16} /> :
        stock.action === 'sell' ? <TrendingDown className="text-danger" size={16} /> :
