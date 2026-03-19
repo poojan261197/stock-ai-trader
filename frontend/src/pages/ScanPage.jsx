@@ -162,12 +162,17 @@ export default function ScanPage() {
   )
 }
 
-function StockCard({ stock, rank, isSelected, onToggle }) {
-  const ActionIcon = ({ action }) => {
-    if (action === 'buy') return <TrendingUp className="text-success" size={16} />
-    if (action === 'sell') return <TrendingDown className="text-danger" size={16} />
-    return <Minus className="text-warning" size={16} />
+const ActionIcon = ({ action }) => {
+  if (action === 'buy') {
+    return <TrendingUp className="text-success" size={16} />
   }
+  if (action === 'sell') {
+    return <TrendingDown className="text-danger" size={16} />
+  }
+  return <Minus className="text-warning" size={16} />
+}
+
+function StockCard({ stock, rank, isSelected, onToggle }) {
 
   const getActionClass = (action) => {
     switch (action) {
@@ -252,7 +257,7 @@ function StockCard({ stock, rank, isSelected, onToggle }) {
             stock.action
           )}`}
         >
-          {<ActionIcon action={stock.action} />}
+          <ActionIcon action={stock.action} />
           {stock.action?.toUpperCase() || 'HOLD'}
         </div>
 
