@@ -166,11 +166,11 @@ function StockCard({ stock, rank, isSelected, onToggle }) {
   const getActionIcon = (action) => {
     switch (action) {
       case 'buy':
-        return <TrendingUp className="text-success" size={16} />
+        return (<TrendingUp className="text-success" size={16} />)
       case 'sell':
-        return <TrendingDown className="text-danger" size={16} />
+        return (<TrendingDown className="text-danger" size={16} />)
       default:
-        return <Minus className="text-warning" size={16} />
+        return (<Minus className="text-warning" size={16} />)
     }
   }
 
